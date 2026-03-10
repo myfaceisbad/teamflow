@@ -1,8 +1,10 @@
 // Seed script for Docker (no tsx needed, plain Node.js)
 const { PrismaClient } = require('@prisma/client');
+const { PrismaBetterSQLite3 } = require('@prisma/adapter-better-sqlite3');
 const bcrypt = require('bcryptjs');
 
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSQLite3({ url: process.env.DATABASE_URL || 'file:./prisma/dev.db' });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const hp = await bcrypt.hash('password123', 10);
