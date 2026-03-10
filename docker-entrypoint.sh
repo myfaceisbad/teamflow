@@ -5,7 +5,7 @@ set -e
 if [ ! -f /app/prisma/dev.db ]; then
   echo "==> Initializing database..."
   echo "==> DATABASE_URL=$DATABASE_URL"
-  npx prisma db push --accept-data-loss
+  npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma --url="$DATABASE_URL" 2>&1 || echo "==> db push failed with exit code $?"
   echo "==> Seeding demo data..."
   node prisma/seed.js
   echo "==> Database ready!"
