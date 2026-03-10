@@ -3,9 +3,13 @@ import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 export async function middleware(request: NextRequest) {
+  // NextAuth v5 uses "authjs.session-token" cookie (v4 used "next-auth.session-token")
+  const isSecure = request.url.startsWith('https')
+  const cookieName = isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token'
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    cookieName,
   })
   const isLoggedIn = !!token
   const isAuthPage = request.nextUrl.pathname.startsWith('/login')
