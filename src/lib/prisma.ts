@@ -6,7 +6,9 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaBetterSqlite3({ url: `file:./prisma/dev.db` })
+  const dbUrl = process.env.DATABASE_URL || 'file:./prisma/dev.db'
+  console.log('[prisma] Connecting to:', dbUrl)
+  const adapter = new PrismaBetterSqlite3({ url: dbUrl })
   return new PrismaClient({ adapter } as any)
 }
 
@@ -14,4 +16,4 @@ export const prisma =
   globalForPrisma.prisma ??
   createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+globalForPrisma.prisma = prisma
