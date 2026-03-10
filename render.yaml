@@ -11,10 +11,9 @@ services:
       - key: AUTH_SECRET
         value: teamflow-super-secret-key-2026
       - key: NEXTAUTH_URL
-        fromService:
-          type: web
-          name: teamflow
-          property: host
+        value: https://teamflow.onrender.com
+      - key: AUTH_TRUST_HOST
+        value: "true"
     disk:
       name: teamflow-data
       mountPath: /app/prisma
