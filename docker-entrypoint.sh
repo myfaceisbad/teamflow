@@ -1,12 +1,10 @@
 #!/bin/sh
 set -e
 
-# Initialize SQLite DB and seed if not exists
+# If no database exists, copy pre-built template (no prisma CLI needed at runtime)
 if [ ! -f /app/prisma/dev.db ]; then
-  echo "==> Initializing database..."
-  npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma --url="$DATABASE_URL"
-  echo "==> Seeding demo data..."
-  node prisma/seed.js
+  echo "==> Copying pre-built database template..."
+  cp /app/prisma/template.db /app/prisma/dev.db
   echo "==> Database ready!"
 else
   echo "==> Database already exists, skipping init."
