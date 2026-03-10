@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  avatarUrl     String?
+  role          String    @default("MEMBER")
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  capacityHours Float     @default(40)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  skills          UserSkill[]
+  assignedTasks   Task[]          @relation("AssignedTasks")
+  createdTasks    Task[]          @relation("CreatedTasks")
+  applications    TaskApplication[]
+  workloadRecords WorkloadRecord[]
+  checkins        WellbeingCheckin[]
+  projectMembers  ProjectMember[]
+  notifications   Notification[]
+  comments        Comment[]
+}
+
+model Department {
+  id    String @id @default(cuid())
+  name  String
+  users User[]
+  teams Team[]
+}
+
+model Team {
+  id           String     @id @default(cuid())
+  name         String
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  projects     Project[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      String   @default("ACTIVE")
+  color       String   @default("#6366f1")
+  startDate   DateTime?
+  endDate     DateTime?
+  teamId      String?
+  team        Team?    @relation(fields: [teamId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks   Task[]
+  members ProjectMember[]
+}
+
+model ProjectMember {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  role      String  @default("MEMBER")
+
+  @@unique([projectId, userId])
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  status         String    @default("TODO")
+  priority       String    @default("MEDIUM")
+  isMarketplace  Boolean   @default(false)
+  estimatedHours Float?
+  actualHours    Float?
+  startDate      DateTime?
+  dueDate        DateTime?
+  completedAt    DateTime?
+  order          Int       @default(0)
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id])
+  assigneeId     String?
+  assignee       User?     @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  creatorId      String
+  creator        User      @relation("CreatedTasks", fields: [creatorId], references: [id])
+  parentId       String?
+  parent         Task?     @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks       Task[]    @relation("Subtasks")
+  requiredSkills String    @default("[]")
+  labelTags      String    @default("[]")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  applications    TaskApplication[]
+  comments        Comment[]
+  workloadRecords WorkloadRecord[]
+}
+
+model TaskApplication {
+  id              String   @id @default(cuid())
+  taskId          String
+  task            Task     @relation(fields: [taskId], references: [id])
+  applicantId     String
+  applicant       User     @relation(fields: [applicantId], references: [id])
+  desireLevel     Int
+  confidenceLevel Int
+  message         String?
+  aiMatchScore    Float?
+  status          String   @default("PENDING")
+  reviewNote      String?
+  reviewedAt      DateTime?
+  reviewedById    String?
+  createdAt       DateTime @default(now())
+
+  @@unique([taskId, applicantId])
+}
+
+model UserSkill {
+  id             String  @id @default(cuid())
+  userId         String
+  user           User    @relation(fields: [userId], references: [id])
+  skillName      String
+  category       String  @default("technical")
+  level          Int
+  managerLevel   Int?
+  isGrowthTarget Boolean @default(false)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, skillName])
+}
+
+model WorkloadRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  taskId          String?
+  task            Task?    @relation(fields: [taskId], references: [id])
+  date            DateTime
+  calculatedHours Float
+  declaredLevel   Int?
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model WellbeingCheckin {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  weekStart         DateTime
+  stressLevel       Int
+  energyLevel       Int
+  satisfactionLevel Int
+  freeComment       String?
+  isAnonymous       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  @@unique([userId, weekStart])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}

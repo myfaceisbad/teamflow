@@ -1,0 +1,17 @@
+services:
+  teamflow:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./prisma/dev.db
+      - NEXTAUTH_SECRET=teamflow-super-secret-key-2026
+      - AUTH_SECRET=teamflow-super-secret-key-2026
+      - NEXTAUTH_URL=http://localhost:3000
+    volumes:
+      # Persist SQLite DB across container restarts
+      - teamflow-data:/app/prisma
+    restart: unless-stopped
+
+volumes:
+  teamflow-data:
