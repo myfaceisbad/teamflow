@@ -12,7 +12,7 @@ COPY . .
 
 # Generate Prisma client & build Next.js
 ENV DATABASE_URL="file:./prisma/dev.db"
-RUN npx prisma generate
+RUN npx prisma generate --schema=./prisma/schema.prisma
 RUN npm run build
 
 # ─── Stage 2: Production ───
