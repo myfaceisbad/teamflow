@@ -34,13 +34,15 @@ RUN apk add --no-cache libstdc++
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy standalone server (includes node_modules with all needed packages)
-COPY --from=builder /app/.next/standalone ./
-# Copy static assets and public
-COPY --from=builder /app/.next/static ./.next/static
+# Copy everything needed to run next start
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-# Copy pre-built database template to a path NOT under /app/prisma
-# (Render mounts a persistent disk at /app/prisma which hides image contents)
+COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/tsconfig.json ./
+
+# Copy pre-built database template (NOT under /app/prisma - Render mounts disk there)
 COPY --from=builder /app/prisma/template.db ./db-template/template.db
 COPY --from=builder /app/prisma/schema.prisma ./db-template/schema.prisma
 
@@ -48,12 +50,12 @@ COPY --from=builder /app/prisma/schema.prisma ./db-template/schema.prisma
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Ensure writable for SQLite
-RUN chown -R nextjs:nodejs /app
+# Ensure writable
+RUN mkdir -p /app/prisma && chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3000
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["node", "server.js"]
+CMD ["npx", "next", "start"]
