@@ -4,9 +4,9 @@ set -e
 # Initialize SQLite DB and seed if not exists
 if [ ! -f /app/prisma/dev.db ]; then
   echo "==> Initializing database..."
-  npx prisma db push --skip-generate
+  npx prisma db push --schema=./prisma/schema.prisma --skip-generate --accept-data-loss
   echo "==> Seeding demo data..."
-  npx tsx prisma/seed.ts
+  node prisma/seed.js
   echo "==> Database ready!"
 else
   echo "==> Database already exists, skipping init."
