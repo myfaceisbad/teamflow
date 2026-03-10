@@ -34,21 +34,15 @@ RUN apk add --no-cache libstdc++
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy standalone server
+# Copy standalone server (includes node_modules with all needed packages)
 COPY --from=builder /app/.next/standalone ./
 # Copy static assets and public
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# Copy pre-built database template
-COPY --from=builder /app/prisma/template.db ./prisma/template.db
-COPY --from=builder /app/prisma/schema.prisma ./prisma/schema.prisma
-# Copy native module (better-sqlite3) - needed at runtime
-COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-COPY --from=builder /app/node_modules/bindings ./node_modules/bindings
-COPY --from=builder /app/node_modules/file-uri-to-path ./node_modules/file-uri-to-path
-# Copy Prisma runtime packages
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy pre-built database template to a path NOT under /app/prisma
+# (Render mounts a persistent disk at /app/prisma which hides image contents)
+COPY --from=builder /app/prisma/template.db ./db-template/template.db
+COPY --from=builder /app/prisma/schema.prisma ./db-template/schema.prisma
 
 # Copy entrypoint
 COPY docker-entrypoint.sh ./
